@@ -63,6 +63,31 @@
 				"Runtime": "nodejs4.3",
 				"MemorySize": 128
 			}
-		}
+		},
+	 "KeepAliveLambdaRule":{
+		 "Type":"AWS::Events::Rule",
+		 "Properties": {
+			 "ScheduleExpression": "rate(6 hours)",
+			 "Targets":[{
+				 "Id": "KeepaliveLambdaScheduler",
+				 "Arn": {
+					 "Fn::GetAtt":["KeepaliveLambda","Arn"]
+				 }
+			 }]
+		 }
+	 },
+	 "InvokeKeepAliveLambdaPermission":{
+		 "Type":"AWS::Lambda::Permission",
+		 "Properties":{
+			 "FunctionName":{
+				 "Fn::GetAtt":["KeepaliveLambda","Arn"]
+			 },
+			 "Action":"lambda:InvokeFunction",
+			 "Principal":"events.amazonaws.com",
+			 "SourceArn":{
+				 "Fn::GetAtt":["KeepAliveLambdaRule","Arn"]
+			 }
+		 }
+	 }
 	}
 }
