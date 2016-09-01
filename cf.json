@@ -1,0 +1,68 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Lambda function for membership salesforce keepalive",
+	"Resources": {
+		"KeepaliveLambdaRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": ["lambda.amazonaws.com"]
+						},
+						"Action": ["sts:AssumeRole"]
+					}]
+				},
+				"Path": "/",
+				"Policies": [{
+					"PolicyName": "LambdaPolicy",
+					"PolicyDocument": {
+						"Statement": [
+							{
+							"Effect": "Allow",
+							"Action": [
+								"s3:Get*"
+							],
+							"Resource": [
+								"arn:aws:s3:::membership-private/*",
+								"arn:aws:s3:::membership-dist/membership/PROD/membership-salesforce-keepalive/*"
+							]
+					  	},
+							{
+							"Effect": "Allow",
+							"Action": [
+								"logs:CreateLogGroup",
+								"logs:CreateLogStream",
+								"logs:PutLogEvents"
+							],
+							"Resource": "*"
+						}
+					]
+					}
+				}]
+			}
+		},
+		"KeepaliveLambda": {
+			"Type": "AWS::Lambda::Function",
+			"DependsOn": [
+				"KeepaliveLambdaRole"
+			],
+			"Properties": {
+				"Code": {
+					"S3Bucket": "membership-dist",
+					"S3Key": "membership/PROD/membership-salesforce-keepalive/membership-salesforce-keepalive.zip"
+
+				},
+				"Role": {
+					"Fn::GetAtt": ["KeepaliveLambdaRole", "Arn"]
+				},
+				"Timeout": 120,
+				"Handler": "main.handler",
+				"Runtime": "nodejs4.3",
+				"MemorySize": 128
+			}
+		}
+	}
+}
